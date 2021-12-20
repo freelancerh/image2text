@@ -45,7 +45,7 @@ def run_tesseract(filename, output_path, image_file_name):
     if not output_path:
         temp_dir = tempfile.mkdtemp()
         temp_file = os.path.join(temp_dir, filename_without_extension)
-        subprocess.run(['tesseract', image_file_name, temp_file],
+        subprocess.run(['tesseract', '-l', 'jpn', image_file_name, temp_file],
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE)
         with open('{}.txt'.format(temp_file), 'r', encoding="utf8") as f:
@@ -53,7 +53,7 @@ def run_tesseract(filename, output_path, image_file_name):
         shutil.rmtree(temp_dir)
         return text
     text_file_path = os.path.join(output_path, filename_without_extension)
-    subprocess.run(['tesseract', image_file_name, text_file_path],
+    subprocess.run(['tesseract', '-l', 'jpn', image_file_name, text_file_path],
                    stdout=subprocess.PIPE,
                    stderr=subprocess.PIPE)
     return
@@ -160,6 +160,20 @@ def main(input_path, output_path):
         print(run_tesseract(filename, output_path, input_path))
 
 
+def merge_text_files(input_path):
+    output_file_name = 'total.txt'
+    with open(os.path.join(input_path, output_file_name), 'w') as out_file:
+        input_list = os.listdir(input_path)
+        input_list.remove(output_file_name)
+        for filename in sorted(input_list, key=lambda x: int(x.split('.')[0])):
+            with open(os.path.join(input_path, filename), 'r', encoding='utf8') as in_file:
+                while True:
+                    line = in_file.readline()
+                    if not line:
+                        break
+                    out_file.writelines(line)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser._action_groups.pop()
@@ -191,3 +205,4 @@ if __name__ == '__main__':
         exit()
 
     main(input_path, output_path)
+    merge_text_files(output_path)
